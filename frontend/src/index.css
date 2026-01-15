@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'ABC Diatype Medium';
+    src: url('https://framerusercontent.com/assets/w2Yfm8ZMUL0K7Bncr6fxlslEfN8.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'ABC Gramercy Italic Variable';
+    src: url('https://framerusercontent.com/assets/hL9ckVXTzTqrxFmcEZfdUJScCg4.woff2') format('woff2');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 0 0% 8%;
+        --card: 0 0% 100%;
+        --card-foreground: 0 0% 8%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 0 0% 8%;
+        --primary: 0 0% 8%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 0 0% 96%;
+        --secondary-foreground: 0 0% 8%;
+        --muted: 0 0% 96%;
+        --muted-foreground: 0 0% 45%;
+        --accent: 0 0% 96%;
+        --accent-foreground: 0 0% 8%;
+        --destructive: 0 72% 51%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 0 0% 91%;
+        --input: 0 0% 91%;
+        --ring: 0 0% 8%;
+        --radius: 0.75rem;
+    }
+
+    .dark {
+        --background: 0 0% 6%;
+        --foreground: 0 0% 96%;
+        --card: 0 0% 8%;
+        --card-foreground: 0 0% 96%;
+        --popover: 0 0% 8%;
+        --popover-foreground: 0 0% 96%;
+        --primary: 0 0% 96%;
+        --primary-foreground: 0 0% 8%;
+        --secondary: 0 0% 12%;
+        --secondary-foreground: 0 0% 96%;
+        --muted: 0 0% 12%;
+        --muted-foreground: 0 0% 55%;
+        --accent: 0 0% 12%;
+        --accent-foreground: 0 0% 96%;
+        --destructive: 0 62% 45%;
+        --destructive-foreground: 0 0% 100%;
+        --border: 0 0% 15%;
+        --input: 0 0% 15%;
+        --ring: 0 0% 96%;
+    }
+
+    * { @apply border-border; box-sizing: border-box; }
+    html, body, #root { height: 100%; }
+    body {
+        @apply bg-background text-foreground antialiased;
+        font-family: 'ABC Diatype Medium', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+}
+
+@layer utilities {
+    .text-2xs { font-size: 11px; line-height: 1.4; }
+    .font-accent { font-family: 'ABC Gramercy Italic Variable', Georgia, serif; font-style: italic; }
+}
+
+::selection { background: hsl(var(--foreground) / 0.1); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground) / 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.3); }
+:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+:focus:not(:focus-visible) { outline: none; }
+::placeholder { color: hsl(var(--muted-foreground) / 0.5); }
