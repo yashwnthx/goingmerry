@@ -50,7 +50,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                             <RefreshCw size={14} />
                             Reload page
                         </button>
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
+                        {import.meta.env.DEV && this.state.error && (
                             <pre className="mt-8 p-4 bg-secondary rounded-xl text-left text-2xs text-muted-foreground overflow-auto max-h-48">
                                 {this.state.error.message}
                                 {'\n\n'}

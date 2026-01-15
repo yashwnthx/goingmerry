@@ -60,11 +60,17 @@ export const Home: React.FC<HomeProps> = ({ onDocumentCreated, onError, onBefore
         abortRef.current = new AbortController();
 
         try {
-            const intent = await parseIntent(trimmed);
+            const intent = await parseIntent(trimmed) as {
+                document_type?: string;
+                topic?: string;
+                sections?: Array<{ heading?: string; content?: string }>;
+                columns?: string[];
+                sample_data?: Array<Record<string, any>>;
+            };
             
             // Build sections for Word docs
             const sections = intent.document_type === 'word'
-                ? (intent.sections || []).map((sec: any, i: number) => ({
+                ? (intent.sections || []).map((sec, i: number) => ({
                     id: `section-${i}`,
                     heading: sec.heading || `Section ${i + 1}`,
                     level: 1,

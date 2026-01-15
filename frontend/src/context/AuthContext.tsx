@@ -39,7 +39,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [promptsUsed, setPromptsUsed] = useState(0);
     const [showSignupPrompt, setShowSignupPrompt] = useState(false);
     
-    const refreshTimeoutRef = useRef<NodeJS.Timeout>();
+    const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
     const sessionRef = useRef<Session | null>(null);
 
     // Schedule token refresh

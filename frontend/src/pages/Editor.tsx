@@ -29,7 +29,7 @@ export const Editor: React.FC = () => {
     const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     
-    const saveTimeoutRef = useRef<NodeJS.Timeout>();
+    const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
     const documentRef = useRef<Document | null>(null);
     const saveAttempts = useRef(0);
     const mountedRef = useRef(true);
