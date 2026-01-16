@@ -279,7 +279,7 @@ export async function deleteDocument(id: string): Promise<void> {
 }
 
 export async function exportDocument(docId: string, format: 'word' | 'excel' | 'pdf') {
-    const res = await fetchWithRetry(`${API_BASE}/export/${docId}/${format}`, {
+    const res = await fetchWithRetry(`${API_BASE}/documents/${docId}/export/${format}`, {
         headers: getAuthHeaders(),
     });
     
