@@ -39,11 +39,11 @@ class AIConfig:
 
 @dataclass
 class SearchConfig:
-    api_key: str
+    tavily_api_key: str
     
     @classmethod
     def from_env(cls) -> "SearchConfig":
-        return cls(api_key=os.environ.get("BRAVE_SEARCH_API_KEY", ""))
+        return cls(tavily_api_key=os.environ.get("TAVILY_API_KEY", ""))
 
 
 @dataclass
@@ -80,5 +80,7 @@ def validate_config() -> list[str]:
         errors.append("SUPABASE_ANON_KEY is required")
     if not config.supabase.db_url:
         errors.append("DATABASE_URL is required")
+    if not config.search.tavily_api_key:
+        errors.append("TAVILY_API_KEY is required")
     
     return errors

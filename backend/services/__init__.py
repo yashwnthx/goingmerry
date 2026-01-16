@@ -7,7 +7,7 @@ from .supabase_client import (
     refresh_session,
     reset_password,
 )
-from .brave_search import BraveSearchClient, get_search_client
+from .tavily_search import TavilyClient, get_tavily_client
 from .errors import (
     AppError,
     NotFoundError,

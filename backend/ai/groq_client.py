@@ -8,18 +8,18 @@ from config import get_config
 SYSTEM_PROMPT = """You are a document generator that creates accurate, factual documents.
 
 CRITICAL RULES FOR ACCURACY:
-1. For Excel/data requests: ONLY include information found in the web search results below
+1. ONLY use information from the web search results provided below
 2. DO NOT make up, guess, or hallucinate any data - especially dates, names, numbers
-3. If information is not in the search results, mark it as "Not Found" or omit it
-4. Always prefer verified information from the search results
-5. Include a "source" column in Excel to indicate where data came from
+3. If information is not in the search results, mark it as "Not Available"
+4. Include a "source" column in Excel to show where each piece of data came from
+5. Use the AI Summary if provided as a reliable overview
 
 For Word documents, return JSON:
 {
   "document_type": "word",
   "topic": "main subject",
   "tone": "formal/casual/technical/academic",
-  "sections": [{"heading": "Title", "content": "2-3 paragraphs using search data"}]
+  "sections": [{"heading": "Title", "content": "detailed paragraphs using search data"}]
 }
 
 For Excel documents, return JSON:
@@ -28,18 +28,18 @@ For Excel documents, return JSON:
   "topic": "main subject",
   "tone": "formal",
   "columns": ["column1", "column2", "source"],
-  "sample_data": [{"column1": "value from search", "column2": "value", "source": "source name"}]
+  "sample_data": [{"column1": "value", "column2": "value", "source": "source name"}]
 }
 
-Additional Rules:
-- Word: Write clean content based on search results, cite sources at the end
-- Word: Include 4-6 sections with substantial, accurate content
-- Excel: Create relevant columns, always include a source column
-- Excel: Include ONLY data you found in the search results
-- Excel: Mark unknown/unverified data as "Not Verified" or "Not Found"
-- If search results are empty or irrelevant, inform the user the data could not be verified"""
+Rules:
+- Word: 4-6 sections with substantial content from search results
+- Word: Cite sources at the end of the document
+- Excel: Include all relevant data found in search results
+- Excel: Always include a source column
+- Excel: Mark unverified data as "Not Available"
+- If no relevant data found, create a document explaining the data could not be verified"""
 
-DATA_KEYWORDS = ['excel', 'spreadsheet', 'list', 'table', 'data']
+DATA_KEYWORDS = ['excel', 'spreadsheet', 'list', 'table', 'data', 'sheet']
 
 
 class AIClient:
@@ -53,8 +53,8 @@ class AIClient:
     @property
     def search_client(self):
         if self._search_client is None:
-            from services.brave_search import get_search_client
-            self._search_client = get_search_client()
+            from services.tavily_search import get_tavily_client
+            self._search_client = get_tavily_client()
         return self._search_client
     
     def _generate(self, prompt: str, json_mode: bool = False) -> str:
@@ -82,16 +82,16 @@ class AIClient:
 
 User Request: {prompt}
 
-IMPORTANT: Base your response ONLY on the search results above. Do not invent data.
+IMPORTANT: Base your response ONLY on the search results above.
 Respond with valid JSON only."""
         else:
             full_prompt = f"""{SYSTEM_PROMPT}
 
-[No search results available - inform user that real-time data could not be fetched]
+[No search results available]
 
 User Request: {prompt}
 
-Respond with valid JSON only. If data cannot be verified, say so clearly."""
+Respond with valid JSON. Inform the user that real-time data could not be fetched."""
         
         return self._parse_json(self._generate(full_prompt, json_mode=True))
     
@@ -106,7 +106,7 @@ Respond with valid JSON only. If data cannot be verified, say so clearly."""
     async def rewrite_with_search(self, content: str, instructions: str, search_query: str = None) -> str:
         context = ""
         if search_query:
-            context = await self.search_client.search_for_context(search_query, num_results=3)
+            context = await self.search_client.search_for_context(search_query, num_results=5)
         prompt = f"Rewrite this content: {instructions}\n\n{context}\n\nContent:\n{content}\n\nReturn only the rewritten text."
         return self._generate(prompt).strip()
     

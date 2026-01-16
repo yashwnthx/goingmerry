@@ -12,7 +12,7 @@ load_dotenv()
 from config import get_config, validate_config
 from db.connection import init_db
 from ai import get_ai_client
-from services.brave_search import get_search_client
+from services.tavily_search import get_tavily_client
 from routers import ai, documents, export, auth
 
 
@@ -37,10 +37,10 @@ async def lifespan(app: FastAPI):
         print(f"[!] AI init failed: {e}")
     
     try:
-        get_search_client()
-        print("[+] Search connected")
+        get_tavily_client()
+        print("[+] Tavily Search connected")
     except Exception as e:
-        print(f"[!] Search init failed: {e}")
+        print(f"[!] Tavily Search init failed: {e}")
     
     yield
     print("[*] Shutting down...")
