@@ -5,6 +5,43 @@ from groq import Groq
 from config import get_config
 
 
+SYSTEM_PROMPT = """You are a document generator that creates accurate, factual documents.
+
+CRITICAL RULES FOR ACCURACY:
+1. For Excel/data requests: ONLY include information found in the web search results below
+2. DO NOT make up, guess, or hallucinate any data - especially dates, names, numbers
+3. If information is not in the search results, mark it as "Not Found" or omit it
+4. Always prefer verified information from the search results
+5. Include a "source" column in Excel to indicate where data came from
+
+For Word documents, return JSON:
+{
+  "document_type": "word",
+  "topic": "main subject",
+  "tone": "formal/casual/technical/academic",
+  "sections": [{"heading": "Title", "content": "2-3 paragraphs using search data"}]
+}
+
+For Excel documents, return JSON:
+{
+  "document_type": "excel",
+  "topic": "main subject",
+  "tone": "formal",
+  "columns": ["column1", "column2", "source"],
+  "sample_data": [{"column1": "value from search", "column2": "value", "source": "source name"}]
+}
+
+Additional Rules:
+- Word: Write clean content based on search results, cite sources at the end
+- Word: Include 4-6 sections with substantial, accurate content
+- Excel: Create relevant columns, always include a source column
+- Excel: Include ONLY data you found in the search results
+- Excel: Mark unknown/unverified data as "Not Verified" or "Not Found"
+- If search results are empty or irrelevant, inform the user the data could not be verified"""
+
+DATA_KEYWORDS = ['excel', 'spreadsheet', 'list', 'table', 'data']
+
+
 class AIClient:
     def __init__(self):
         config = get_config()
@@ -33,44 +70,34 @@ class AIClient:
         return response.choices[0].message.content or "{}"
 
     async def parse_intent_async(self, prompt: str) -> dict:
-        search_context = await self.search_client.search_for_context(prompt, num_results=5)
+        is_data_request = any(kw in prompt.lower() for kw in DATA_KEYWORDS)
+        num_results = 10 if is_data_request else 5
         
-        system_prompt = """You are a document generator. Create a complete document structure.
-
-For Word documents, return JSON:
-{
-  "document_type": "word",
-  "topic": "main subject",
-  "tone": "formal/casual/technical/academic",
-  "sections": [{"heading": "Title", "content": "2-3 paragraphs"}]
-}
-
-For Excel documents, return JSON:
-{
-  "document_type": "excel",
-  "topic": "main subject",
-  "tone": "formal",
-  "columns": ["column1", "column2"],
-  "sample_data": [{"column1": "value", "column2": "value"}]
-}
-
-Rules:
-- Word: Write clean content WITHOUT URLs or citations inline
-- Word: Include 4-6 sections with substantial content
-- Excel: Create relevant columns, no duplicate names
-- Excel: Use specified date format if requested
-- Excel: Include 5-10 rows of data"""
+        search_context = await self.search_client.search_for_context(prompt, num_results=num_results)
         
         if search_context:
-            full_prompt = f"{system_prompt}\n\n{search_context}\n\nUser prompt: {prompt}\n\nRespond with valid JSON only."
+            full_prompt = f"""{SYSTEM_PROMPT}
+
+{search_context}
+
+User Request: {prompt}
+
+IMPORTANT: Base your response ONLY on the search results above. Do not invent data.
+Respond with valid JSON only."""
         else:
-            full_prompt = f"{system_prompt}\n\nUser prompt: {prompt}\n\nRespond with valid JSON only."
+            full_prompt = f"""{SYSTEM_PROMPT}
+
+[No search results available - inform user that real-time data could not be fetched]
+
+User Request: {prompt}
+
+Respond with valid JSON only. If data cannot be verified, say so clearly."""
         
         return self._parse_json(self._generate(full_prompt, json_mode=True))
     
     def parse_intent(self, prompt: str) -> dict:
-        system_prompt = """Create a document structure. Return JSON with document_type, topic, tone, and either sections (for word) or columns/sample_data (for excel)."""
-        return self._parse_json(self._generate(f"{system_prompt}\n\nPrompt: {prompt}", json_mode=True))
+        system = "Create a document structure. Return JSON with document_type, topic, tone, and either sections (for word) or columns/sample_data (for excel)."
+        return self._parse_json(self._generate(f"{system}\n\nPrompt: {prompt}", json_mode=True))
     
     def rewrite_section(self, content: str, instructions: str, preserve_heading: bool = True) -> str:
         prompt = f"Rewrite this content: {instructions}\n\nContent:\n{content}\n\nReturn only the rewritten text."
